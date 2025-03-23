@@ -18,10 +18,13 @@ mongoose
   .then(() => console.log("MongoDB Connected ✅"))
   .catch((err) => console.error("MongoDB Connection Error ❌", err));
 
-  // Enable CORS for all routes
+// Enable CORS for all routes
 app.use(cors());
 
 app.use(express.static('public'));
+
+app.use(express.json()); // Parse JSON bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
 // UNCOMMENT TO CREATING DUMMY DATA
 // createDummyData();

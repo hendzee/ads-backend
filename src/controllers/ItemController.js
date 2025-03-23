@@ -1,3 +1,4 @@
+import { ROOT_URL } from '../config.js';
 import Item from '../models/Item.js';
 
 // GET ALL ITEMS FROM DB
@@ -24,14 +25,93 @@ const getItem = async(req, res) => {
     }
 }
 
+// CREATE ITEM
+const addItem = async(req, res) => {
+    try {
+        let images = [];
+
+        if (req.files) {
+            images = req.files.map(e => {
+                return `${ROOT_URL}/images/${e.filename}`;
+            })
+        }
+
+        const newData = {
+            name: req.body.name,
+            images: images,
+            info: req.body.info,
+            additionalInfo: req.body.additionalInfo ? req.body.additionalInfo : null,
+            checkoutUrl: req.body.checkoutUrl.toLowerCase().trim(),
+            stock: req.body.stock ? req.body.stock : 0,
+            price: req.body.price,
+            discount: req.body.discount
+        }
+    
+        const newItem = await Item.insertOne(newData);
+    
+        res.status(200).json({ item: newItem });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'There is something wrong' });
+    }
+}
+
+// UPDATE ITEM
+const editItem = async(req, res) => {
+    try {
+        let images = [];
+        let oldImages = req.body.oldImages;
+        let newImages = [];
+
+        if (req.files) {
+            newImages = req.files.map(e => {
+                return `${ROOT_URL}/images/${e.filename}`;
+            })
+        }
+
+        images = [...newImages, ...oldImages];
+
+        const newData = {
+            name: req.body.name,
+            images: images,
+            info: req.body.info,
+            additionalInfo: req.body.additionalInfo ? req.body.additionalInfo : '',
+            checkoutUrl: req.body.checkoutUrl.toLowerCase().trim(),
+            stock: req.body.stock ? req.body.stock : 0,
+            price: req.body.price,
+            discount: req.body.discount
+        }
+    
+        const newItem = await Item.findOneAndUpdate(
+            { _id: req.params.id },
+            newData,
+            { new: true }
+        );
+    
+        res.status(200).json({ item: newItem });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'There is something wrong' });
+    }
+}
+
 // CREATE DUMMY DATA OF ITEMS
 const createDummyData = async () => {
-    const img1 = 'http://localhost:3000/images/item1.png';
-    const img2 = 'http://localhost:3000/images/item2.png';
-    const img3 = 'http://localhost:3000/images/item3.png';
-    const img4 = 'http://localhost:3000/images/item4.png';
-    const img5 = 'http://localhost:3000/images/item5.png';
-    const img6 = 'http://localhost:3000/images/item6.png';
+    const img1 = `${ROOT_URL}/images/item1.png`;
+    const img2 = `${ROOT_URL}/images/item2.png`;
+    const img3 = `${ROOT_URL}/images/item3.png`;
+    const img4 = `${ROOT_URL}/images/item4.png`;
+    const img5 = `${ROOT_URL}/images/item5.png`;
+    const img6 = `${ROOT_URL}/images/item6.png`;
+
+    const dummyAdditionalInfo = [
+        "Rasa Manis Alami – Memiliki rasa manis seperti madu tanpa tambahan gula.",
+        "Tekstur Lembut & Daging Tebal – Lebih nikmat dikonsumsi langsung atau dicampur dengan makanan lain.",
+        "Sumber Energi Alami – Kaya akan karbohidrat, serat, dan nutrisi yang memberikan energi tahan lama.",
+        "Kaya Nutrisi – Mengandung serat, vitamin, dan mineral seperti kalium dan magnesium yang baik untuk kesehatan.",
+        "Baik untuk Pencernaan – Kandungan seratnya membantu melancarkan sistem pencernaan.",
+        "Pilihan Sehat untuk Camilan – Cocok untuk diet sehat dan alternatif pemanis alami dalam berbagai hidangan."
+    ];
 
     const dummyItems = [
         { 
@@ -42,7 +122,7 @@ const createDummyData = async () => {
             checkoutUrl: 'https://hendras.orderonline.id/mukena-dewasa---katun-micro-polos-2-in-1',
             discount: 20,
             info: 'Pisang, camilan alami yang lezat dan penuh energi! Kaya akan serat, vitamin, dan rasa manis alami yang menyegarkan. Cocok untuk sarapan, camilan sehat, atau campuran dalam smoothies dan dessert favorit Anda.',
-            additionalInfo: '<ul><li><strong>Rasa Manis Alami</strong> – Memiliki rasa manis seperti madu tanpa tambahan gula.</li><li><strong>Tekstur Lembut & Daging Tebal</strong> – Lebih nikmat dikonsumsi langsung atau dicampur dengan makanan lain.</li><li><strong>Sumber Energi Alami</strong> – Kaya akan karbohidrat, serat, dan nutrisi yang memberikan energi tahan lama.</li><li><strong>Kaya Nutrisi</strong> – Mengandung serat, vitamin, dan mineral seperti kalium dan magnesium yang baik untuk kesehatan.</li><li><strong>Baik untuk Pencernaan</strong> – Kandungan seratnya membantu melancarkan sistem pencernaan.</li><li><strong>Pilihan Sehat untuk Camilan</strong> – Cocok untuk diet sehat dan alternatif pemanis alami dalam berbagai hidangan.</li></ul>'
+            additionalInfo: dummyAdditionalInfo
         },
         { 
             name: 'Baju Flanel Kotak Hitam Kuning',
@@ -52,7 +132,7 @@ const createDummyData = async () => {
             checkoutUrl: 'https://hendras.orderonline.id/mukena-dewasa---katun-micro-polos-2-in-1',
             discount: 5,
             info: 'Tampil santai tapi tetap stylish dengan baju flanel kotak! Bahannya lembut, hangat, dan cocok untuk segala suasana—dari hangout santai hingga gaya streetwear yang kece. Padukan dengan jeans atau kaos favorit, dan siap tampil effortlessly cool!',
-            additionalInfo: '<ul><li><strong>Rasa Manis Alami</strong> – Memiliki rasa manis seperti madu tanpa tambahan gula.</li><li><strong>Tekstur Lembut & Daging Tebal</strong> – Lebih nikmat dikonsumsi langsung atau dicampur dengan makanan lain.</li><li><strong>Sumber Energi Alami</strong> – Kaya akan karbohidrat, serat, dan nutrisi yang memberikan energi tahan lama.</li><li><strong>Kaya Nutrisi</strong> – Mengandung serat, vitamin, dan mineral seperti kalium dan magnesium yang baik untuk kesehatan.</li><li><strong>Baik untuk Pencernaan</strong> – Kandungan seratnya membantu melancarkan sistem pencernaan.</li><li><strong>Pilihan Sehat untuk Camilan</strong> – Cocok untuk diet sehat dan alternatif pemanis alami dalam berbagai hidangan.</li></ul>'
+            additionalInfo: dummyAdditionalInfo
         },
         { 
             name: 'Laptop Toshiba',
@@ -62,7 +142,7 @@ const createDummyData = async () => {
             checkoutUrl: 'https://hendras.orderonline.id/mukena-dewasa---katun-micro-polos-2-in-1',
             discount: 0,
             info: 'Kerja, belajar, atau gaming? Apa pun kebutuhanmu, laptop dengan performa tinggi siap mendukung setiap langkahmu. Desain stylish, baterai tahan lama, dan kecepatan tanpa kompromi—semua dalam satu genggaman!',
-            additionalInfo: '<ul><li><strong>Rasa Manis Alami</strong> – Memiliki rasa manis seperti madu tanpa tambahan gula.</li><li><strong>Tekstur Lembut & Daging Tebal</strong> – Lebih nikmat dikonsumsi langsung atau dicampur dengan makanan lain.</li><li><strong>Sumber Energi Alami</strong> – Kaya akan karbohidrat, serat, dan nutrisi yang memberikan energi tahan lama.</li><li><strong>Kaya Nutrisi</strong> – Mengandung serat, vitamin, dan mineral seperti kalium dan magnesium yang baik untuk kesehatan.</li><li><strong>Baik untuk Pencernaan</strong> – Kandungan seratnya membantu melancarkan sistem pencernaan.</li><li><strong>Pilihan Sehat untuk Camilan</strong> – Cocok untuk diet sehat dan alternatif pemanis alami dalam berbagai hidangan.</li></ul>'
+            additionalInfo: dummyAdditionalInfo
         },
         { 
             name: 'Kurma Tunis Madu',
@@ -72,7 +152,7 @@ const createDummyData = async () => {
             checkoutUrl: 'https://hendras.orderonline.id/mukena-dewasa---katun-micro-polos-2-in-1',
             discount: 15,
             info: 'Rasakan kelembutan dan manis alami Kurma Tunis Madu, pilihan terbaik untuk camilan sehat dan penuh energi! Tekstur lembut, rasa legit seperti madu, dan kaya akan nutrisi. Cocok untuk berbuka puasa, teman ngopi, atau hadiah istimewa.',
-            additionalInfo: '<ul><li><strong>Rasa Manis Alami</strong> – Memiliki rasa manis seperti madu tanpa tambahan gula.</li><li><strong>Tekstur Lembut & Daging Tebal</strong> – Lebih nikmat dikonsumsi langsung atau dicampur dengan makanan lain.</li><li><strong>Sumber Energi Alami</strong> – Kaya akan karbohidrat, serat, dan nutrisi yang memberikan energi tahan lama.</li><li><strong>Kaya Nutrisi</strong> – Mengandung serat, vitamin, dan mineral seperti kalium dan magnesium yang baik untuk kesehatan.</li><li><strong>Baik untuk Pencernaan</strong> – Kandungan seratnya membantu melancarkan sistem pencernaan.</li><li><strong>Pilihan Sehat untuk Camilan</strong> – Cocok untuk diet sehat dan alternatif pemanis alami dalam berbagai hidangan.</li></ul>'
+            additionalInfo: dummyAdditionalInfo
         },
         { 
             name: 'Topi Fashion Pria Wanita',
@@ -82,7 +162,7 @@ const createDummyData = async () => {
             checkoutUrl: 'https://hendras.orderonline.id/mukena-dewasa---katun-micro-polos-2-in-1',
             discount: 15,
             info: 'info',
-            additionalInfo: 'additional info'
+            additionalInfo: null
         },
         { 
             name: 'Blender Miyako F-7625',
@@ -92,7 +172,7 @@ const createDummyData = async () => {
             checkoutUrl: 'https://hendras.orderonline.id/mukena-dewasa---katun-micro-polos-2-in-1',
             discount: 10,
             info: 'info',
-            additionalInfo: 'additional info'
+            additionalInfo: null
         },
     ];
 
@@ -108,5 +188,7 @@ const createDummyData = async () => {
 export {
     getAllItems,
     getItem,
-    createDummyData
+    createDummyData,
+    addItem,
+    editItem
 }
