@@ -1,5 +1,6 @@
 import { ROOT_URL } from '../config.js';
 import Item from '../models/Item.js';
+import generateItemId from '../utils/generateItemId.js';
 
 // GET ALL ITEMS FROM DB
 const getAllItems = async (req, res) => {
@@ -36,8 +37,11 @@ const addItem = async(req, res) => {
             })
         }
 
+        const itemId = await generateUniqueItemId();
+
         const newData = {
             name: req.body.name,
+            itemId: itemId,
             images: images,
             info: req.body.info,
             additionalInfo: req.body.additionalInfo ? req.body.additionalInfo : null,
@@ -93,6 +97,22 @@ const editItem = async(req, res) => {
         console.log(error);
         res.status(500).json({ message: 'There is something wrong' });
     }
+}
+
+// GENERATE UNIQUE ITEM ID
+const generateUniqueItemId = async () => {
+    let isUnique = false;
+    let itemId = generateItemId();
+
+    do {
+        itemId = generateItemId();
+
+        const isIdExist = await Item.findOne({ itemId: itemId });
+
+        if (!isIdExist) isUnique = true;
+    } while (!isUnique);
+
+    return itemId;
 }
 
 // CREATE DUMMY DATA OF ITEMS
@@ -175,6 +195,11 @@ const createDummyData = async () => {
             additionalInfo: null
         },
     ];
+
+    // SET ITEM ID
+    for (let i = 0; i < dummyItems.length; i++) {
+        dummyItems[i].itemId = await generateUniqueItemId();
+    }
 
     try {
         const createItems = await Item.insertMany(dummyItems);

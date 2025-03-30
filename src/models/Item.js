@@ -3,6 +3,7 @@ import mongoose  from 'mongoose';
 // DEFINE SCHEMA
 const itemSchema = new mongoose.Schema({
     name: { type: String, default: null },
+    itemId: { type: String, required: true, unique: true },
     images: { type: [ String ], default: null },
     info: { type: String, default: null },
     additionalInfo: { type: [ String ], default: null },

@@ -15,6 +15,8 @@ import {
     getAllItems, 
     getItem } from '../controllers/ItemController.js';
 
+import authMiddleware from '../middleware/auth.js';
+
 const itemRouter = express.Router();
 
 const storage = multer.diskStorage({
@@ -30,7 +32,7 @@ const upload = multer({ storage: storage });
 
 itemRouter.get('/items', getAllItems);
 itemRouter.get('/items/:id', getItem);
-itemRouter.post('/items', upload.array('images'), addItem);
-itemRouter.put('/items/:id', upload.array('images'), editItem);
+itemRouter.post('/items', authMiddleware, upload.array('images'), addItem);
+itemRouter.put('/items/:id', authMiddleware, upload.array('images'), editItem);
 
 export default itemRouter;
